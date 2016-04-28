@@ -1,7 +1,9 @@
 #include <stdio.h>
 #include <math.h>
 #include <stdlib.h>
-
+/*
+#making a change for github testing
+*/
 void transpose2(int** dest, int** src, int rows, int cols, int sets[][2], int srcTable[][3], int destTable[][3]) {
    int i,j;
    i = rows;
