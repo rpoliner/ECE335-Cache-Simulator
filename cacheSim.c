@@ -12,28 +12,27 @@ void transpose(int dest[NUM_ROWS][NUM_COLS], int src[NUM_ROWS][NUM_COLS], int sr
 //zero out cache_sets
   for(i=0;i<setNum;i++) {
     for(j=0;j<setLines;j++) {
-      cache_sets[i][j]=0;
       for(k=0;k<2;k++) { 
         cache_sets[i][j][k] = 0;}}}
 //run transpose code for checking hit or miss 
   for(i=0;i< NUM_ROWS;i++) {
       for(j=0;j<NUM_COLS;j++) {
-         src[i][j] = cache_sim(i, j, srcTable, cache_sets);
-         dest[j][i] = cache_sim(j, i, destTable, cache_sets);
+         //src[i][j] = cache_sim(i, j, srcTable, cache_sets);
+         //dest[j][i] = cache_sim(j, i, destTable, cache_sets);
        }
      }
 }
 
 //cache_sim will return a hit or miss
 // 0=Miss and 1=Hit
-int cache_sim(int i, j, Table[NUM_ELE][2], cache_sets[][][2]) {
+//int cache_sim(int i, int j, int Table[NUM_ELE][2], int cache_sets[][][2]) {
 // i and j are coordinates in src or dest.
 //find index based on i and j.
-  int Table_index = (i*NUM_ROWS)+(j);
+  //int Table_index = (i*NUM_ROWS)+(j);
 //look at set index and compare tags
   
 
-}
+//}
 
 int main(){
   int cacheSize;              // Cache size
@@ -104,9 +103,9 @@ int main(){
     else { 
     set_id++;}}
 
-   printf("dest tags and set index: \n");
+   printf("src tags and set index: \n");
    for(i=0;i<NUM_ELE;i++) {
-      printf("%d %d\n", destTable[i][0], destTable[i][1]);}
+      printf("%d %d | %d %d\n", srcTable[i][0], srcTable[i][1], destTable[i][0], destTable[i][1]);}
 
   transpose(src, dest, srcTable, destTable, setLines, setNum);
 
