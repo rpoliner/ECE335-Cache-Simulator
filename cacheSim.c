@@ -1,16 +1,38 @@
 #include <stdio.h>
 #include <math.h>
 #include <stdlib.h>
-#define NUM_ROWS 4
-#define NUM_COLS 4
+#define NUM_ROWS 4 //number of rows
+#define NUM_COLS 4 //number of colums 
+#define NUM_ELE 16 //number of elements
 
-void transpose2(int** dest, int** src, int sets[][2], int srcTable[][3], int destTable[][3]) {
-  int i,j;
+void transpose(int dest[NUM_ROWS][NUM_COLS], int src[NUM_ROWS][NUM_COLS], int srcTable[NUM_ELE][2], int destTable[NUM_ELE][2], int setLines, int setNum) {
+  int i,j,k;
+//initialiZe cache sets
+  int cache_sets[setNum][setLines][2];
+//zero out cache_sets
+  for(i=0;i<setNum;i++) {
+    for(j=0;j<setLines;j++) {
+      cache_sets[i][j]=0;
+      for(k=0;k<2;k++) { 
+        cache_sets[i][j][k] = 0;}}}
+//run transpose code for checking hit or miss 
   for(i=0;i< NUM_ROWS;i++) {
       for(j=0;j<NUM_COLS;j++) {
-         dest[j][i] = src[i][j];
+         src[i][j] = cache_sim(i, j, srcTable, cache_sets);
+         dest[j][i] = cache_sim(j, i, destTable, cache_sets);
        }
      }
+}
+
+//cache_sim will return a hit or miss
+// 0=Miss and 1=Hit
+int cache_sim(int i, j, Table[NUM_ELE][2], cache_sets[][][2]) {
+// i and j are coordinates in src or dest.
+//find index based on i and j.
+  int Table_index = (i*NUM_ROWS)+(j);
+//look at set index and compare tags
+  
+
 }
 
 int main(){
@@ -20,7 +42,7 @@ int main(){
   int setLines;
   int j, i;                   // Loop variables
   int tag;                    // tag bits (t)
-  int rows, cols;
+  int set_id;                 // set index
 
   printf("Enter cache size, block size, and number of lines per set.\n");
   printf("Input Cache Parameters in the format (C B E): ");
@@ -37,6 +59,7 @@ int main(){
 
 // Calculate number of set index bits (s)
   setNum = cacheSize / (blockSize*setLines);      //  S = C / (B*E)
+  printf("setNum (S): %d\n", setNum);
 
   int set_index_bits = 0;
   int set_temp = setNum;
@@ -45,60 +68,47 @@ int main(){
   }
 
   printf("Set index bits: %d \n", set_index_bits);
-/*
-   //initialize and allocate arrays
-   int **src; //hit/miss table for source
-   int **dest; //hit/miss table for destination
-   int srcTable[blockSize][3]; //contains tags and set index for source
-   int destTable[blockSize][3]; //contains tags and set index for dest
-   int sets[setNum][2]; //initialize the number of sets
-   //allocate memory for src and dest
-   src = malloc(NUM_ROWS * sizeof(*src));
-   dest = malloc(NUM_ROWS * sizeof(*dest));
-   for(i=0;i<rows;i++) {
-      src[i] = malloc(cols * sizeof(*src[i]));
-      dest[i] = malloc(cols * sizeof(*dest[i]));}
-   //fill out srcTable
-   tag = 0; //tag
-   setIdx = 0; //set Index
-   int blockSizeBysetNum = blockSize/setNum;
-   //fil out src tags
-   // besides blcokSizeByNum do (blocksize/4)*setNum (4 is int size)
-   for(i=0;i<blockSizeBysetNum;i++) {
-      for(j=0;j<blk_index_bits;j++) {
-         srcTable[j][0] = tag;
-       }
+
+//initialize source and dest arrays
+//these will be the arrays storing the hit/miss information
+  int src[NUM_ROWS][NUM_COLS];
+  int dest[NUM_ROWS][NUM_COLS];
+
+//initialize tables to store tags and set indexes.
+//col 0 wil be filled with tags and col 1 will be filled with set indexes 
+  int srcTable[NUM_ELE][2];
+  int destTable[NUM_ELE][2];
+//fill out tags for source  
+  tag = 0;
+  for(i=0;i<NUM_ELE;i++) {
+    if(i>0 && i%(blockSize/setNum)==0) {
       tag++;}
-   //fil out src set indexs
-   for(i=0;i<blockSizeBysetNum/b;i++) {
-      for(j=0;j<blk_index_bits;j++) {
-         srcTable[j][1] = setIdx;}
-      if(setIdx < setNum) {
-         setIdx++; }
-      else {
-         setIdx = 0;}}
-   //fill out dest tags
-    for(i=0;i<blockSizeBysetNum;i++) {
-      for(j=0;j<blk_index_bits;j++) {
-         destTable[j][0] = tag;
-       }
+    srcTable[i][0] = tag;}
+
+//fill out tags for dest
+  tag = srcTable[NUM_ELE-1][0] + 1;
+  for(i=0;i<NUM_ELE;i++) {
+    if(i>0 && i%(blockSize/setNum)==0) {
       tag++;}
-   //fil out dest set indexs
-   for(i=0;i<blockSizeBysetNum/b;i++) {
-      for(j=0;j<blk_index_bits;j++) {
-         destTable[j][1] = setIdx;}
-      if(setIdx < setNum-1) {
-         setIdx++; }
-      else {
-         setIdx = 0;}}
-   //run transpose function and pray.
-   transpose2(dest, src, rows, cols, sets, srcTable, destTable);
-   //deallocate arrays
-   for(i=0;i<rows;i++) {
-      free(src[i]);
-      free(dest[i]);}
-   free(src);
-   free(dest);
-*/
+    destTable[i][0] = tag;}
+
+//fill out source and dest set indexes
+//I used for because I don't know how to increment set index.  
+  set_id = 0;
+  for(i=0;i<NUM_ELE;i+=4) {
+    for(j=0;j<4;j++) {
+      srcTable[i+j][1] = set_id;
+      destTable[i+j][1] = set_id;}
+    if(set_id==(setNum-1)) {
+      set_id=0;}
+    else { 
+    set_id++;}}
+
+   printf("dest tags and set index: \n");
+   for(i=0;i<NUM_ELE;i++) {
+      printf("%d %d\n", destTable[i][0], destTable[i][1]);}
+
+  transpose(src, dest, srcTable, destTable, setLines, setNum);
+
    return 0;
 }
