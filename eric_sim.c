@@ -2,18 +2,6 @@
 #include <math.h>
 #include <stdlib.h>
 #define MATRIX_SIZE 4 // square matrix
-//#define NUM_COLS 4 //number of colums
-// call cache sim [i][j]
-// cache_sim accepts i and j, then determines appropriate address
-
-// n = 4 ( number of rows and columns)
-// determine source address
-// src_addr = [i*(n)+j]*4
-// blk = src_addr & 0xF
-// or for two sets set = (src_addr & 0xF) & 0x3
-// tag  =src_addr >>6
-
-//dst_addr = 0x40 + [i*(n-1)+j]
 
 void cache_sim(int address, int cache[4][4], int blk_offset_bits, int set_index_bits, int setLines){
   int i,j; // loop incrementers
@@ -30,7 +18,6 @@ void cache_sim(int address, int cache[4][4], int blk_offset_bits, int set_index_
 // if valid bit = 1 and no tag match in any cacheline, then result = 0 (miss)
 // and update cache line with LRU
 // remember to update the third col with a counter of usage for the LRU replacement
-
 }
 
 int main(){
