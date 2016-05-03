@@ -5,13 +5,27 @@
 #define MATRIX_SIZE 4 // square matrix
 
 int cache_sim(int address, int cache[MATRIX_SIZE][MATRIX_SIZE][3], int blk_offset_bits, int set_index_bits, int setLines, int check){
-  int i,j, temp2; // loop incrementers
+  int i,j, temp1, temp2;
+  int temp3 = 32; // loop incrementers
+  
+
+  if (set_index_bits == 1){
+    temp1 = 0x10;
+    temp2 = 0x60;
+  }
+  else {
+    temp1 = 0x30;
+    temp2 = 0x40;
+    temp3 = 64;
+  }
+
 // given an address, take the s bit field. then look at that set
-  if (set_index_bits == 1) temp2 = 0x1;
-  else temp2 = 0x3;
-  int set = (address >> blk_offset_bits) & temp2;
-  int tag = (address >> (blk_offset_bits + set_index_bits));
-  printf("ADDRESS: %d: set bits: %d , tag bits: %d\n", address, set, tag);
+  //int relevant = (address & 0xF0)/16;
+  int set = (address & temp1) / 16;
+  int tag = (address & temp2) / temp3;
+  //int set = (address >> blk_offset_bits) & temp2;
+  //int tag = ((temp1 >> (blk_offset_bits + 2))&0x1);
+  printf("ADDRESS: %d: set bits: %d , tag bits: %d \n", address, set, tag);
 
   int temp, result, earliestUsed, line;
   int finish = 0;
