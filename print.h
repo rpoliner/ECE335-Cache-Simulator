@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-void print(int **src, int **dst){
+void print(int src[4][4], int dst[4][4]){
 	printf("dst\n");
 	printf("_____________________________\n");
 	printf("     |Col0 |Col1 |Col2 |Col3 |\n");
