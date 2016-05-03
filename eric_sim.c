@@ -1,23 +1,18 @@
+#include "print.h"
 #include <stdio.h>
 #include <math.h>
 #include <stdlib.h>
 #define MATRIX_SIZE 4 // square matrix
 
-void cache_sim(int address, int cache[4][4], int blk_offset_bits, int set_index_bits, int setLines){
+int cache_sim(int address, int cache[MATRIX_SIZE][MATRIX_SIZE][2], int blk_offset_bits, int set_index_bits, int setLines){
   int i,j; // loop incrementers
 // given an address, take the s bit field. then look at that set
   int set = (address >> blk_offset_bits) & set_index_bits;
   int tag = (address >> (blk_offset_bits + set_index_bits));
   printf("ADDRESS: %d: set bits: %d , tag bits: %d\n", address, set, tag);
 
-// first seach the appropriate set
-// then, check valid bit (first column)
-// if valid bit = 0. result = 0 (miss). then update cache line
-// if valid bit =1, then search cache line to see if tag matches
-// if tag matches, then result =1 (hit) and leave in cacheline
-// if valid bit = 1 and no tag match in any cacheline, then result = 0 (miss)
-// and update cache line with LRU
-// remember to update the third col with a counter of usage for the LRU replacement
+  return 0;
+
 }
 
 int main(){
@@ -25,7 +20,7 @@ int main(){
   int blockSize;              // Block size
   int setNum;                 // Number of sets (S)
   int setLines;               // Number of lines per set (E)
-  int i,j;                    // Loop variables
+  int i,j,k;                    // Loop variables
   int mem_addrNum;            // Max # of unique memory addresses
   int tag_bits;                    // tag bits (t)
   int src_address;            // variable used in src_address calculation
@@ -75,23 +70,29 @@ int main(){
 
 // Cache Initialization
 // Column 1 = Valid Bit, Column 2 = Tag bits, Column 3 = Usage (counter for LRU replacement)
-
+/*
   int cache_rows = setNum * setLines;
   int cache_cols = 3;
   int cache[cache_rows][cache_cols];
-//  printf("cache_rows: %d\n",cache_rows);
-//  printf("cache_cols: %d\n",cache_cols);
+*/
+  int cache[setNum][setLines][2];
+// printf("cache_rows: %d\n",cache_rows);
+// printf("cache_cols: %d\n",cache_cols);
 
 // Set every value to 0 initially
-  for (i=0; i < cache_rows; i++){
-    for (j=0; j<cache_cols; j++){
-      cache[i][j] = 0;
+  for (i=0; i < setNum; i++){
+    for (j=0; j< setLines; j++){
+      for (k=0; k<2; k++){
+        cache[i][j][k] = 0;
+      }
     }
   }
 /* Debugging -  print initial cache contents
-  for (i=0; i < cache_rows; i++){
-    for(j=0; j< cache_cols; j++){
-      printf("\tcache[%d][%d]: %d\n", i,j, cache[i][j]);
+  for (i=0; i < setNum; i++){
+    for(j=0; j< setLines; j++){
+      for(k=0;k<2;k++){
+      printf("\tcache[%d][%d]: %d\n", i,j, cache[i][j][k]);
+      }
     }
   }
 */
@@ -125,11 +126,9 @@ int main(){
     for (j=0; j< MATRIX_SIZE; j++){
       src_address_temp = src_address_array[i][j];
 // The function call below is only for the time being, just to test the function without populating the final arrays
-      cache_sim(src_address_temp,cache, blk_offset_bits, set_index_bits, setLines);
-//      final_src_array[i][j] = cache_sim(src_address_temp,cache, blk_offset_bits, set_index_bits);
+      final_src_array[i][j] = cache_sim(src_address_temp,cache, blk_offset_bits, set_index_bits, setLines);
       dst_address_temp = dst_address_array[j][i];
-//      final_dst_array[j][i] = cache_sim(dst_address_temp, cache, blk_offset_bits, set_index_bits);
-      cache_sim(dst_address_temp, cache, blk_offset_bits, set_index_bits, setLines);
+      final_dst_array[j][i] = cache_sim(dst_address_temp, cache, blk_offset_bits, set_index_bits, setLines);
     }
   }
 
