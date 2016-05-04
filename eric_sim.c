@@ -4,7 +4,9 @@
 #include <stdlib.h>
 #define MATRIX_SIZE 4 // square matrix
 
-int cache_sim(int address, int cache[MATRIX_SIZE][MATRIX_SIZE][3], int blk_offset_bits, int set_index_bits, int setLines, int check){
+int lru;
+
+int cache_sim(int address, int cache[MATRIX_SIZE][MATRIX_SIZE][3], int blk_offset_bits, int set_index_bits, int setLines){
   int i,j, temp1, temp2;
   int temp3 = 32; // loop incrementers
   
@@ -20,12 +22,8 @@ int cache_sim(int address, int cache[MATRIX_SIZE][MATRIX_SIZE][3], int blk_offse
   }
 
 // given an address, take the s bit field. then look at that set
-  //int relevant = (address & 0xF0)/16;
   int set = (address & temp1) / 16;
   int tag = (address & temp2) / temp3;
-  //int set = (address >> blk_offset_bits) & temp2;
-  //int tag = ((temp1 >> (blk_offset_bits + 2))&0x1);
-  printf("ADDRESS: %d: set bits: %d , tag bits: %d \n", address, set, tag);
 
   int temp, result, earliestUsed, line;
   int finish = 0;
@@ -34,15 +32,15 @@ int cache_sim(int address, int cache[MATRIX_SIZE][MATRIX_SIZE][3], int blk_offse
       result = 0;                               //indicate a miss
       cache[set][temp][0] = 1;                  //update valid bit
       cache[set][temp][1] = tag;                //update tag
-      cache[set][temp][2] = check;                //update time used
-      check++;                                    //increase time
+      cache[set][temp][2] = lru;                //update time used
+      lru++;                                    //increase time
       finish = 1;
       break;
     }
     else if (cache[set][temp][1] == tag){       //check the tag to see if it matches
       result = 1;                               //indicate a hit
-      cache[set][temp][2] = check;                //update time used
-      check++;                                    //increase time
+      cache[set][temp][2] = lru;                //update time used
+      lru++;                                    //increase time
       finish = 1;                               //indicate finish
       break;
     }
@@ -54,21 +52,20 @@ int cache_sim(int address, int cache[MATRIX_SIZE][MATRIX_SIZE][3], int blk_offse
     result = 0;
     if (setLines == 1){                         //check if there is only one line
       cache[set][0][1] = tag;                   //update tag
-      cache[set][0][2] = check;                   //update time used
-      check++;                                    //update time
+      cache[set][0][2] = lru;                   //update time used
+      lru++;                                    //update time
     }
     else{                                       //set associativity is > 1
-      earliestUsed = cache[set][0][2];          //Set initial parameters for comparisons
-      line = 0;                                 
-      for (temp = 1; temp < setLines; temp++){  //Cycle through each line
+      earliestUsed = lru;          //Set initial parameters for comparisons                                 
+      for (temp = 0; temp < setLines; temp++){  //Cycle through each line
         if(cache[set][temp][2] < earliestUsed){ //If the line is older, update
           earliestUsed = cache[set][temp][2];
           line = temp;
         }
       }
       cache[set][line][1] = tag;                 //Update tag and lru for oldest line
-      cache[set][line][2] = check;
-      check++;
+      cache[set][line][2] = lru;
+      lru++;
     }
   }
 
@@ -83,7 +80,7 @@ int main(){
   int setNum;                 // Number of sets (S)
   int setLines;               // Number of lines per set (E)
   int i,j,k;                    // Loop variables
-  int lru = 0;                    //time variable
+  lru = 0;                    //time variable
   int mem_addrNum;            // Max # of unique memory addresses
   int tag_bits;                    // tag bits (t)
   int src_address;            // variable used in src_address calculation
@@ -133,15 +130,10 @@ int main(){
 
 // Cache Initialization
 // Column 1 = Valid Bit, Column 2 = Tag bits, Column 3 = Usage (counter for LRU replacement)
-/*
-  int cache_rows = setNum * setLines;
-  int cache_cols = 3;
-  int cache[cache_rows][cache_cols];
-*/
+
   //cache[set][line][valid|tag|lru]
   int cache[setNum][setLines][3];
-// printf("cache_rows: %d\n",cache_rows);
-// printf("cache_cols: %d\n",cache_cols);
+
 
 // Set every value to 0 initially
   for (i=0; i < setNum; i++){
@@ -153,15 +145,7 @@ int main(){
   }
 
 
-/* Debugging -  print initial cache contents
-  for (i=0; i < setNum; i++){
-    for(j=0; j< setLines; j++){
-      for(k=0;k<2;k++){
-      printf("\tcache[%d][%d]: %d\n", i,j, cache[i][j][k]);
-      }
-    }
-  }
-*/
+/
 // Calculating src and destination addresses, to simplify the pass to cache_sim function
 
 // Populate an array to keep track of all of the source addresses
@@ -192,9 +176,9 @@ int main(){
     for (j=0; j< MATRIX_SIZE; j++){
       src_address_temp = src_address_array[i][j];
 // The function call below is only for the time being, just to test the function without populating the final arrays
-      final_src_array[i][j] = cache_sim(src_address_temp,cache, blk_offset_bits, set_index_bits, setLines, lru);
+      final_src_array[i][j] = cache_sim(src_address_temp,cache, blk_offset_bits, set_index_bits, setLines);
       dst_address_temp = dst_address_array[j][i];
-      final_dst_array[j][i] = cache_sim(dst_address_temp, cache, blk_offset_bits, set_index_bits, setLines, lru);
+      final_dst_array[j][i] = cache_sim(dst_address_temp, cache, blk_offset_bits, set_index_bits, setLines);
     }
   }
 
